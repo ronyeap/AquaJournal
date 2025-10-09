@@ -1,0 +1,5 @@
+{
+  "name": "AquaLog",
+  "description": "A comprehensive web application for aquarium enthusiasts to track and manage fish tank maintenance activities. Monitor tank conditions, schedule care tasks, and maintain detailed logs to ensure a healthy aquatic environment.",
+  "requestFramePermissions": []
+}
