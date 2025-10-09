@@ -30,6 +30,8 @@ export const LogFormsModal: React.FC<LogFormsModalProps> = ({ modalState, aquari
   const { type, itemToEdit } = modalState;
   const [formData, setFormData] = useState<any>({});
   const [file, setFile] = useState<File | null>(null);
+  const [isProcessing, setIsProcessing] = useState(false);
+  const [error, setError] = useState<string | null>(null);
 
   useEffect(() => {
     if (itemToEdit) {
@@ -68,7 +70,23 @@ export const LogFormsModal: React.FC<LogFormsModalProps> = ({ modalState, aquari
 
   const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     if (e.target.files && e.target.files[0]) {
-      setFile(e.target.files[0]);
+      const selectedFile = e.target.files[0];
+      
+      // Validate file size (limit to 10MB to prevent memory issues)
+      const maxSize = 10 * 1024 * 1024; // 10MB
+      if (selectedFile.size > maxSize) {
+        setError('File size too large. Please select an image smaller than 10MB.');
+        return;
+      }
+      
+      // Validate file type
+      if (!selectedFile.type.startsWith('image/')) {
+        setError('Please select a valid image file.');
+        return;
+      }
+      
+      setFile(selectedFile);
+      setError(null); // Clear any previous errors
     }
   };
 
@@ -132,11 +150,44 @@ export const LogFormsModal: React.FC<LogFormsModalProps> = ({ modalState, aquari
     if (type !== 'ADD_AQUARIUM' && type !== 'EDIT_AQUARIUM' && !aquariumId) return;
 
     if (file) {
+      setIsProcessing(true);
+      setError(null);
+      
       const reader = new FileReader();
+      
       reader.onloadend = () => {
-        processFormAndSubmit(reader.result as string);
+        try {
+          if (reader.result) {
+            processFormAndSubmit(reader.result as string);
+            setIsProcessing(false);
+          } else {
+            throw new Error('Failed to read file');
+          }
+        } catch (err) {
+          console.error('Error processing file:', err);
+          setError('Failed to process the selected image. Please try again.');
+          setIsProcessing(false);
+        }
       };
-      reader.readAsDataURL(file);
+      
+      reader.onerror = () => {
+        console.error('FileReader error:', reader.error);
+        setError('Failed to read the selected image. Please try a different image.');
+        setIsProcessing(false);
+      };
+      
+      reader.onabort = () => {
+        setError('Image processing was cancelled.');
+        setIsProcessing(false);
+      };
+      
+      try {
+        reader.readAsDataURL(file);
+      } catch (err) {
+        console.error('Error starting file read:', err);
+        setError('Failed to process the selected image. Please try again.');
+        setIsProcessing(false);
+      }
     } else {
       processFormAndSubmit(formData.photoDataUrl);
     }
@@ -192,6 +243,19 @@ export const LogFormsModal: React.FC<LogFormsModalProps> = ({ modalState, aquari
                 <InputField name="species" label="Plant Species" value={formData.species || ''} onChange={handleChange} required />
                 <InputField name="date" label="Planting Date" type="date" value={formData.date} onChange={handleChange} required />
                 <InputField name="photo" label="Plant Photo" type="file" onChange={handleFileChange} accept="image/*" />
+                {file && (
+                  <div className="mt-2">
+                    <p className="text-sm text-gray-600 mb-2">Selected: {file.name}</p>
+                    <div className="w-32 h-32 border border-gray-300 rounded-md overflow-hidden bg-gray-100">
+                      <img 
+                        src={URL.createObjectURL(file)} 
+                        alt="Preview" 
+                        className="w-full h-full object-cover"
+                        onLoad={(e) => URL.revokeObjectURL((e.target as HTMLImageElement).src)}
+                      />
+                    </div>
+                  </div>
+                )}
                 {formData.photoDataUrl && !file && <img src={formData.photoDataUrl} alt="Current plant" className="w-20 h-20 object-cover rounded-md mt-2"/>}
                 <TextAreaField name="notes" label="Notes" value={formData.notes || ''} onChange={handleChange} />
             </>
@@ -215,6 +279,19 @@ export const LogFormsModal: React.FC<LogFormsModalProps> = ({ modalState, aquari
             <>
                 <InputField name="date" label="Date" type="date" value={formData.date} onChange={handleChange} required />
                 <InputField name="photo" label="Photo" type="file" onChange={handleFileChange} accept="image/*" required={!itemToEdit} />
+                {file && (
+                  <div className="mt-2">
+                    <p className="text-sm text-gray-600 mb-2">Selected: {file.name}</p>
+                    <div className="w-32 h-32 border border-gray-300 rounded-md overflow-hidden bg-gray-100">
+                      <img 
+                        src={URL.createObjectURL(file)} 
+                        alt="Preview" 
+                        className="w-full h-full object-cover"
+                        onLoad={(e) => URL.revokeObjectURL((e.target as HTMLImageElement).src)}
+                      />
+                    </div>
+                  </div>
+                )}
                 <TextAreaField name="notes" label="Notes" value={formData.notes || ''} onChange={handleChange} />
             </>
         );
@@ -240,9 +317,20 @@ export const LogFormsModal: React.FC<LogFormsModalProps> = ({ modalState, aquari
     <Modal title={titles[type]} onClose={onClose}>
         <form onSubmit={handleSubmit} className="space-y-4">
             {renderFormFields()}
+            
+            {error && (
+              <div className="bg-red-50 border border-red-200 text-red-700 px-4 py-3 rounded-md">
+                <p className="text-sm">{error}</p>
+              </div>
+            )}
+            
             <div className="flex justify-end pt-4 border-t mt-4">
-                <button type="button" onClick={onClose} className="mr-2 px-4 py-2 bg-gray-200 text-gray-800 rounded-md hover:bg-gray-300">Cancel</button>
-                <button type="submit" className="px-4 py-2 bg-blue-500 text-white rounded-md hover:bg-blue-600">Save</button>
+                <button type="button" onClick={onClose} className="mr-2 px-4 py-2 bg-gray-200 text-gray-800 rounded-md hover:bg-gray-300" disabled={isProcessing}>
+                  Cancel
+                </button>
+                <button type="submit" className="px-4 py-2 bg-blue-500 text-white rounded-md hover:bg-blue-600 disabled:opacity-50 disabled:cursor-not-allowed" disabled={isProcessing}>
+                  {isProcessing ? 'Processing...' : 'Save'}
+                </button>
             </div>
         </form>
     </Modal>
