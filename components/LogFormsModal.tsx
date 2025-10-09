@@ -91,65 +91,92 @@ export const LogFormsModal: React.FC<LogFormsModalProps> = ({ modalState, aquari
   };
 
   const processFormAndSubmit = (photoDataUrl?: string) => {
-    const data: any = { ...formData };
-    if (itemToEdit) data.id = itemToEdit.id;
-    if (photoDataUrl) data.photoDataUrl = photoDataUrl;
-    
-    const date = data.date ? new Date(data.date).toISOString() : new Date().toISOString();
-    const setupDate = data.setupDate ? new Date(data.setupDate).toISOString() : new Date().toISOString();
+    try {
+      console.log('processFormAndSubmit called with:', { type, photoDataUrl: photoDataUrl ? 'data URL present' : 'no data URL' });
+      
+      const data: any = { ...formData };
+      if (itemToEdit) data.id = itemToEdit.id;
+      if (photoDataUrl) data.photoDataUrl = photoDataUrl;
+      
+      const date = data.date ? new Date(data.date).toISOString() : new Date().toISOString();
+      const setupDate = data.setupDate ? new Date(data.setupDate).toISOString() : new Date().toISOString();
 
-    switch (type) {
-      case 'ADD_AQUARIUM':
-      case 'EDIT_AQUARIUM':
-        const aquariumData = {
-          id: data.id,
-          name: data.name, size: data.size, unit: data.unit, setupDate,
-          dashboardPhotoId: data.dashboardPhotoId,
-          co2: data.co2?.details ? { details: data.co2.details } : undefined,
-          lighting: data.lighting?.brand ? { brand: data.lighting.brand, durationStart: data.lighting.durationStart, durationEnd: data.lighting.durationEnd } : undefined
-        };
-        type === 'ADD_AQUARIUM' ? onAddAquarium(aquariumData) : dataActions.updateAquarium(aquariumData);
-        break;
-      case 'LOG_WATER_CHANGE':
-      case 'EDIT_WATER_CHANGE':
-        const wcData = { aquariumId: aquariumId!, date, volume: data.volume, unit: data.unit, notes: data.notes, id: data.id };
-        type === 'LOG_WATER_CHANGE' ? dataActions.addWaterChange(wcData) : dataActions.updateWaterChange(wcData);
-        break;
-      case 'LOG_FERTILIZER':
-      case 'EDIT_FERTILIZER':
-        const fertData = { aquariumId: aquariumId!, date, fertilizer: data.fertilizer, dosageMl: data.dosageMl, notes: data.notes, id: data.id };
-        type === 'LOG_FERTILIZER' ? dataActions.addFertilization(fertData) : dataActions.updateFertilization(fertData);
-        break;
-      case 'ADD_PLANT':
-      case 'EDIT_PLANT':
-        const plantData = { aquariumId: aquariumId!, plantingDate: date, species: data.species, notes: data.notes, photoDataUrl: data.photoDataUrl, id: data.id };
-        type === 'ADD_PLANT' ? dataActions.addPlant(plantData) : dataActions.updatePlant(plantData);
-        break;
-      case 'ADD_TASK':
-      case 'EDIT_TASK':
-        const taskData = { 
-            aquariumId: aquariumId!, 
-            name: data.name, 
-            isRepeatable: data.isRepeatable,
-            frequencyDays: data.isRepeatable ? data.frequencyDays : undefined, 
-            lastCompleted: date, 
-            notes: data.notes, 
-            id: data.id 
-        };
-        type === 'ADD_TASK' ? dataActions.addTask(taskData) : dataActions.updateTask(taskData);
-        break;
-      case 'UPLOAD_PHOTO':
-        dataActions.addPhoto({ aquariumId: aquariumId!, date, photoDataUrl: data.photoDataUrl!, notes: data.notes });
-        break;
+      console.log('Processing form data:', { type, aquariumId, data });
+
+      switch (type) {
+        case 'ADD_AQUARIUM':
+        case 'EDIT_AQUARIUM':
+          const aquariumData = {
+            id: data.id,
+            name: data.name, size: data.size, unit: data.unit, setupDate,
+            dashboardPhotoId: data.dashboardPhotoId,
+            co2: data.co2?.details ? { details: data.co2.details } : undefined,
+            lighting: data.lighting?.brand ? { brand: data.lighting.brand, durationStart: data.lighting.durationStart, durationEnd: data.lighting.durationEnd } : undefined
+          };
+          console.log('Adding/updating aquarium:', aquariumData);
+          type === 'ADD_AQUARIUM' ? onAddAquarium(aquariumData) : dataActions.updateAquarium(aquariumData);
+          break;
+        case 'LOG_WATER_CHANGE':
+        case 'EDIT_WATER_CHANGE':
+          const wcData = { aquariumId: aquariumId!, date, volume: data.volume, unit: data.unit, notes: data.notes, id: data.id };
+          console.log('Adding/updating water change:', wcData);
+          type === 'LOG_WATER_CHANGE' ? dataActions.addWaterChange(wcData) : dataActions.updateWaterChange(wcData);
+          break;
+        case 'LOG_FERTILIZER':
+        case 'EDIT_FERTILIZER':
+          const fertData = { aquariumId: aquariumId!, date, fertilizer: data.fertilizer, dosageMl: data.dosageMl, notes: data.notes, id: data.id };
+          console.log('Adding/updating fertilization:', fertData);
+          type === 'LOG_FERTILIZER' ? dataActions.addFertilization(fertData) : dataActions.updateFertilization(fertData);
+          break;
+        case 'ADD_PLANT':
+        case 'EDIT_PLANT':
+          const plantData = { aquariumId: aquariumId!, plantingDate: date, species: data.species, notes: data.notes, photoDataUrl: data.photoDataUrl, id: data.id };
+          console.log('Adding/updating plant:', plantData);
+          type === 'ADD_PLANT' ? dataActions.addPlant(plantData) : dataActions.updatePlant(plantData);
+          break;
+        case 'ADD_TASK':
+        case 'EDIT_TASK':
+          const taskData = { 
+              aquariumId: aquariumId!, 
+              name: data.name, 
+              isRepeatable: data.isRepeatable,
+              frequencyDays: data.isRepeatable ? data.frequencyDays : undefined, 
+              lastCompleted: date, 
+              notes: data.notes, 
+              id: data.id 
+          };
+          console.log('Adding/updating task:', taskData);
+          type === 'ADD_TASK' ? dataActions.addTask(taskData) : dataActions.updateTask(taskData);
+          break;
+        case 'UPLOAD_PHOTO':
+          const photoData = { aquariumId: aquariumId!, date, photoDataUrl: data.photoDataUrl!, notes: data.notes };
+          console.log('Adding photo:', { ...photoData, photoDataUrl: photoDataUrl ? 'data URL present' : 'no data URL' });
+          dataActions.addPhoto(photoData);
+          break;
+        default:
+          console.error('Unknown modal type:', type);
+      }
+      
+      console.log('Form processing completed, closing modal');
+      onClose();
+    } catch (error) {
+      console.error('Error in processFormAndSubmit:', error);
+      setError('Failed to save. Please try again.');
+      setIsProcessing(false);
     }
-    onClose();
   };
   
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
-    if (type !== 'ADD_AQUARIUM' && type !== 'EDIT_AQUARIUM' && !aquariumId) return;
+    console.log('handleSubmit called for type:', type, 'aquariumId:', aquariumId);
+    
+    if (type !== 'ADD_AQUARIUM' && type !== 'EDIT_AQUARIUM' && !aquariumId) {
+      console.log('Early return: invalid aquariumId for type:', type);
+      return;
+    }
 
     if (file) {
+      console.log('File selected, starting FileReader process for file:', file.name, 'size:', file.size);
       setIsProcessing(true);
       setError(null);
       
@@ -157,8 +184,11 @@ export const LogFormsModal: React.FC<LogFormsModalProps> = ({ modalState, aquari
       
       reader.onloadend = () => {
         try {
+          console.log('FileReader onloadend called, result length:', reader.result ? (reader.result as string).length : 'null');
           if (reader.result) {
+            console.log('Calling processFormAndSubmit with file data');
             processFormAndSubmit(reader.result as string);
+            console.log('processFormAndSubmit completed, setting isProcessing to false');
             setIsProcessing(false);
           } else {
             throw new Error('Failed to read file');
@@ -189,6 +219,7 @@ export const LogFormsModal: React.FC<LogFormsModalProps> = ({ modalState, aquari
         setIsProcessing(false);
       }
     } else {
+      console.log('No file selected, calling processFormAndSubmit with existing photoDataUrl');
       processFormAndSubmit(formData.photoDataUrl);
     }
   };
