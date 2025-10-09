@@ -32,10 +32,22 @@ const Section: React.FC<{ title: string; icon: React.ReactNode; children: React.
 
 const LogItem: React.FC<{onEdit: () => void; onDelete: () => void; children: React.ReactNode;}> = ({onEdit, onDelete, children}) => (
     <li className="p-3 bg-slate-50 rounded-lg flex justify-between items-center">
-        <div>{children}</div>
-        <div className="flex space-x-2">
-            <button onClick={onEdit} className="p-1.5 text-slate-500 hover:text-blue-600 hover:bg-blue-100 rounded-full"><PencilIcon/></button>
-            <button onClick={onDelete} className="p-1.5 text-slate-500 hover:text-red-600 hover:bg-red-100 rounded-full"><TrashIcon/></button>
+        <div className="flex-1">{children}</div>
+        <div className="flex space-x-3 ml-4">
+            <button 
+                onClick={onEdit} 
+                className="p-3 text-slate-500 hover:text-blue-600 hover:bg-blue-100 rounded-full transition-colors min-w-[44px] min-h-[44px] flex items-center justify-center"
+                aria-label="Edit"
+            >
+                <PencilIcon className="w-5 h-5"/>
+            </button>
+            <button 
+                onClick={onDelete} 
+                className="p-3 text-slate-500 hover:text-red-600 hover:bg-red-100 rounded-full transition-colors min-w-[44px] min-h-[44px] flex items-center justify-center"
+                aria-label="Delete"
+            >
+                <TrashIcon className="w-5 h-5"/>
+            </button>
         </div>
     </li>
 );
@@ -196,7 +208,7 @@ export const AquariumDetail: React.FC<AquariumDetailProps> = ({ aquarium, data, 
                  <Section title="Water Change Log" icon={<WaterIcon className="w-6 h-6 text-blue-500" />}>
                      {filteredWaterChanges.length > 0 ? (
                          <>
-                             <ul className="space-y-2">
+                             <ul className="space-y-3">
                                 {(expandedWaterChanges ? filteredWaterChanges : filteredWaterChanges.slice(0, 3)).map(wc => (
                                     <LogItem 
                                         key={wc.id} 
@@ -216,7 +228,7 @@ export const AquariumDetail: React.FC<AquariumDetailProps> = ({ aquarium, data, 
                                         console.log('Show more water changes clicked, current state:', expandedWaterChanges);
                                         setExpandedWaterChanges(!expandedWaterChanges);
                                     }}
-                                    className="w-full mt-3 py-2 px-4 text-blue-600 hover:text-blue-700 hover:bg-blue-50 rounded-lg transition-colors"
+                                    className="w-full mt-4 py-4 px-6 text-blue-600 hover:text-blue-700 hover:bg-blue-50 rounded-lg transition-colors font-medium text-lg min-h-[48px] flex items-center justify-center"
                                 >
                                     {expandedWaterChanges ? 'Show Less' : `Show ${filteredWaterChanges.length - 3} More`}
                                 </button>
@@ -227,7 +239,7 @@ export const AquariumDetail: React.FC<AquariumDetailProps> = ({ aquarium, data, 
                 <Section title="Fertilization Log" icon={<LeafIcon className="w-6 h-6 text-green-500" />}>
                      {filteredFertilizations.length > 0 ? (
                          <>
-                             <ul className="space-y-2">
+                             <ul className="space-y-3">
                                 {(expandedFertilizations ? filteredFertilizations : filteredFertilizations.slice(0, 3)).map(f => (
                                     <LogItem 
                                         key={f.id} 
@@ -247,7 +259,7 @@ export const AquariumDetail: React.FC<AquariumDetailProps> = ({ aquarium, data, 
                                         console.log('Show more fertilizations clicked, current state:', expandedFertilizations);
                                         setExpandedFertilizations(!expandedFertilizations);
                                     }}
-                                    className="w-full mt-3 py-2 px-4 text-green-600 hover:text-green-700 hover:bg-green-50 rounded-lg transition-colors"
+                                    className="w-full mt-4 py-4 px-6 text-green-600 hover:text-green-700 hover:bg-green-50 rounded-lg transition-colors font-medium text-lg min-h-[48px] flex items-center justify-center"
                                 >
                                     {expandedFertilizations ? 'Show Less' : `Show ${filteredFertilizations.length - 3} More`}
                                 </button>
