@@ -82,13 +82,17 @@ export const AquariumDetail: React.FC<AquariumDetailProps> = ({ aquarium, data, 
     };
     
     const handleDeleteWaterChange = (wc: WaterChangeLog) => {
+        console.log('handleDeleteWaterChange called for:', wc);
         if (window.confirm(`Are you sure you want to delete the water change log from ${new Date(wc.date).toLocaleDateString()}?`)) {
+            console.log('Deleting water change:', wc.id);
             deleteWaterChange(wc.id);
         }
     };
 
     const handleDeleteFertilization = (f: FertilizationLog) => {
+        console.log('handleDeleteFertilization called for:', f);
         if (window.confirm(`Are you sure you want to delete the fertilization log for "${f.fertilizer}" from ${new Date(f.date).toLocaleDateString()}?`)) {
+            console.log('Deleting fertilization:', f.id);
             deleteFertilization(f.id);
         }
     };
@@ -196,7 +200,10 @@ export const AquariumDetail: React.FC<AquariumDetailProps> = ({ aquarium, data, 
                                 {(expandedWaterChanges ? filteredWaterChanges : filteredWaterChanges.slice(0, 3)).map(wc => (
                                     <LogItem 
                                         key={wc.id} 
-                                        onEdit={() => openModal('EDIT_WATER_CHANGE', wc)} 
+                                        onEdit={() => {
+                                            console.log('Edit water change clicked for:', wc);
+                                            openModal('EDIT_WATER_CHANGE', wc);
+                                        }} 
                                         onDelete={() => handleDeleteWaterChange(wc)}>
                                         <p className="font-semibold">{new Date(wc.date).toLocaleDateString()}: <span className="font-normal">{wc.volume} {unitLabels[wc.unit]}</span></p>
                                         {wc.notes && <p className="text-sm text-slate-600 mt-1">{wc.notes}</p>}
@@ -205,7 +212,10 @@ export const AquariumDetail: React.FC<AquariumDetailProps> = ({ aquarium, data, 
                             </ul>
                             {filteredWaterChanges.length > 3 && (
                                 <button 
-                                    onClick={() => setExpandedWaterChanges(!expandedWaterChanges)}
+                                    onClick={() => {
+                                        console.log('Show more water changes clicked, current state:', expandedWaterChanges);
+                                        setExpandedWaterChanges(!expandedWaterChanges);
+                                    }}
                                     className="w-full mt-3 py-2 px-4 text-blue-600 hover:text-blue-700 hover:bg-blue-50 rounded-lg transition-colors"
                                 >
                                     {expandedWaterChanges ? 'Show Less' : `Show ${filteredWaterChanges.length - 3} More`}
@@ -221,7 +231,10 @@ export const AquariumDetail: React.FC<AquariumDetailProps> = ({ aquarium, data, 
                                 {(expandedFertilizations ? filteredFertilizations : filteredFertilizations.slice(0, 3)).map(f => (
                                     <LogItem 
                                         key={f.id} 
-                                        onEdit={() => openModal('EDIT_FERTILIZER', f)} 
+                                        onEdit={() => {
+                                            console.log('Edit fertilization clicked for:', f);
+                                            openModal('EDIT_FERTILIZER', f);
+                                        }} 
                                         onDelete={() => handleDeleteFertilization(f)}>
                                         <p className="font-semibold">{new Date(f.date).toLocaleDateString()}: <span className="font-normal">{f.fertilizer} - {f.dosageMl}ml</span></p>
                                         {f.notes && <p className="text-sm text-slate-600 mt-1">{f.notes}</p>}
@@ -230,7 +243,10 @@ export const AquariumDetail: React.FC<AquariumDetailProps> = ({ aquarium, data, 
                             </ul>
                             {filteredFertilizations.length > 3 && (
                                 <button 
-                                    onClick={() => setExpandedFertilizations(!expandedFertilizations)}
+                                    onClick={() => {
+                                        console.log('Show more fertilizations clicked, current state:', expandedFertilizations);
+                                        setExpandedFertilizations(!expandedFertilizations);
+                                    }}
                                     className="w-full mt-3 py-2 px-4 text-green-600 hover:text-green-700 hover:bg-green-50 rounded-lg transition-colors"
                                 >
                                     {expandedFertilizations ? 'Show Less' : `Show ${filteredFertilizations.length - 3} More`}
