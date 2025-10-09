@@ -68,6 +68,34 @@ export const LogFormsModal: React.FC<LogFormsModalProps> = ({ modalState, aquari
     }));
   };
 
+  const compressImage = (file: File, maxWidth: number = 800, quality: number = 0.8): Promise<string> => {
+    return new Promise((resolve, reject) => {
+      const canvas = document.createElement('canvas');
+      const ctx = canvas.getContext('2d');
+      const img = new Image();
+      
+      img.onload = () => {
+        // Calculate new dimensions
+        let { width, height } = img;
+        if (width > maxWidth) {
+          height = (height * maxWidth) / width;
+          width = maxWidth;
+        }
+        
+        canvas.width = width;
+        canvas.height = height;
+        
+        // Draw and compress
+        ctx?.drawImage(img, 0, 0, width, height);
+        const compressedDataUrl = canvas.toDataURL('image/jpeg', quality);
+        resolve(compressedDataUrl);
+      };
+      
+      img.onerror = () => reject(new Error('Failed to load image'));
+      img.src = URL.createObjectURL(file);
+    });
+  };
+
   const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     if (e.target.files && e.target.files[0]) {
       const selectedFile = e.target.files[0];
@@ -132,7 +160,13 @@ export const LogFormsModal: React.FC<LogFormsModalProps> = ({ modalState, aquari
         case 'EDIT_PLANT':
           const plantData = { aquariumId: aquariumId!, plantingDate: date, species: data.species, notes: data.notes, photoDataUrl: data.photoDataUrl, id: data.id };
           console.log('Adding/updating plant:', plantData);
-          type === 'ADD_PLANT' ? dataActions.addPlant(plantData) : dataActions.updatePlant(plantData);
+          try {
+            type === 'ADD_PLANT' ? dataActions.addPlant(plantData) : dataActions.updatePlant(plantData);
+            console.log('Plant added/updated successfully');
+          } catch (storageError) {
+            console.error('Failed to save plant:', storageError);
+            throw new Error('Failed to save plant. Storage may be full. Please try deleting some old photos.');
+          }
           break;
         case 'ADD_TASK':
         case 'EDIT_TASK':
@@ -151,7 +185,13 @@ export const LogFormsModal: React.FC<LogFormsModalProps> = ({ modalState, aquari
         case 'UPLOAD_PHOTO':
           const photoData = { aquariumId: aquariumId!, date, photoDataUrl: data.photoDataUrl!, notes: data.notes };
           console.log('Adding photo:', { ...photoData, photoDataUrl: photoDataUrl ? 'data URL present' : 'no data URL' });
-          dataActions.addPhoto(photoData);
+          try {
+            dataActions.addPhoto(photoData);
+            console.log('Photo added successfully');
+          } catch (storageError) {
+            console.error('Failed to save photo:', storageError);
+            throw new Error('Failed to save photo. Storage may be full. Please try deleting some old photos.');
+          }
           break;
         default:
           console.error('Unknown modal type:', type);
@@ -176,48 +216,23 @@ export const LogFormsModal: React.FC<LogFormsModalProps> = ({ modalState, aquari
     }
 
     if (file) {
-      console.log('File selected, starting FileReader process for file:', file.name, 'size:', file.size);
+      console.log('File selected, starting image compression for file:', file.name, 'size:', file.size);
       setIsProcessing(true);
       setError(null);
       
-      const reader = new FileReader();
-      
-      reader.onloadend = () => {
-        try {
-          console.log('FileReader onloadend called, result length:', reader.result ? (reader.result as string).length : 'null');
-          if (reader.result) {
-            console.log('Calling processFormAndSubmit with file data');
-            processFormAndSubmit(reader.result as string);
-            console.log('processFormAndSubmit completed, setting isProcessing to false');
-            setIsProcessing(false);
-          } else {
-            throw new Error('Failed to read file');
-          }
-        } catch (err) {
-          console.error('Error processing file:', err);
+      compressImage(file)
+        .then((compressedDataUrl) => {
+          console.log('Image compression completed, compressed size:', compressedDataUrl.length);
+          console.log('Calling processFormAndSubmit with compressed data');
+          processFormAndSubmit(compressedDataUrl);
+          console.log('processFormAndSubmit completed, setting isProcessing to false');
+          setIsProcessing(false);
+        })
+        .catch((err) => {
+          console.error('Error compressing image:', err);
           setError('Failed to process the selected image. Please try again.');
           setIsProcessing(false);
-        }
-      };
-      
-      reader.onerror = () => {
-        console.error('FileReader error:', reader.error);
-        setError('Failed to read the selected image. Please try a different image.');
-        setIsProcessing(false);
-      };
-      
-      reader.onabort = () => {
-        setError('Image processing was cancelled.');
-        setIsProcessing(false);
-      };
-      
-      try {
-        reader.readAsDataURL(file);
-      } catch (err) {
-        console.error('Error starting file read:', err);
-        setError('Failed to process the selected image. Please try again.');
-        setIsProcessing(false);
-      }
+        });
     } else {
       console.log('No file selected, calling processFormAndSubmit with existing photoDataUrl');
       processFormAndSubmit(formData.photoDataUrl);

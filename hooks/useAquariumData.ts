@@ -6,8 +6,45 @@ const getInitialState = <T,>(key: string, defaultValue: T): T => {
     const storedValue = localStorage.getItem(key);
     return storedValue ? JSON.parse(storedValue) : defaultValue;
   } catch (error) {
-    console.error(`Error reading from localStorage key “${key}”:`, error);
+    console.error(`Error reading from localStorage key "${key}":`, error);
     return defaultValue;
+  }
+};
+
+const saveToStorage = (key: string, data: any): boolean => {
+  try {
+    const jsonString = JSON.stringify(data);
+    localStorage.setItem(key, jsonString);
+    return true;
+  } catch (error) {
+    if (error instanceof DOMException && error.name === 'QuotaExceededError') {
+      console.warn(`localStorage quota exceeded for key "${key}". Attempting cleanup...`);
+      
+      // Try to clean up old photos to make space
+      if (key === 'photos') {
+        try {
+          const existingPhotos = JSON.parse(localStorage.getItem('photos') || '[]');
+          if (existingPhotos.length > 0) {
+            // Keep only the 10 most recent photos
+            const recentPhotos = existingPhotos.slice(0, 10);
+            localStorage.setItem('photos', JSON.stringify(recentPhotos));
+            console.log('Cleaned up old photos, retrying save...');
+            
+            // Try saving again
+            localStorage.setItem(key, jsonString);
+            return true;
+          }
+        } catch (cleanupError) {
+          console.error('Failed to cleanup photos:', cleanupError);
+        }
+      }
+      
+      console.error(`Storage quota exceeded for "${key}". Data not saved.`);
+      return false;
+    } else {
+      console.error(`Error saving to localStorage key "${key}":`, error);
+      return false;
+    }
   }
 };
 
@@ -32,12 +69,12 @@ export const useAquariumData = () => {
   const [photos, setPhotos] = useState<GrowthPhoto[]>(() => getInitialState('photos', []));
   const [tasks, setTasks] = useState<Task[]>(() => getInitialState('tasks', initialTasks));
 
-  useEffect(() => { localStorage.setItem('aquariums', JSON.stringify(aquariums)); }, [aquariums]);
-  useEffect(() => { localStorage.setItem('waterChanges', JSON.stringify(waterChanges)); }, [waterChanges]);
-  useEffect(() => { localStorage.setItem('plants', JSON.stringify(plants)); }, [plants]);
-  useEffect(() => { localStorage.setItem('fertilizations', JSON.stringify(fertilizations)); }, [fertilizations]);
-  useEffect(() => { localStorage.setItem('photos', JSON.stringify(photos)); }, [photos]);
-  useEffect(() => { localStorage.setItem('tasks', JSON.stringify(tasks)); }, [tasks]);
+  useEffect(() => { saveToStorage('aquariums', aquariums); }, [aquariums]);
+  useEffect(() => { saveToStorage('waterChanges', waterChanges); }, [waterChanges]);
+  useEffect(() => { saveToStorage('plants', plants); }, [plants]);
+  useEffect(() => { saveToStorage('fertilizations', fertilizations); }, [fertilizations]);
+  useEffect(() => { saveToStorage('photos', photos); }, [photos]);
+  useEffect(() => { saveToStorage('tasks', tasks); }, [tasks]);
 
   const createOrUpdate = <T extends {id: string}>(setter: React.Dispatch<React.SetStateAction<T[]>>, item: Omit<T, 'id'> | T) => {
     if ('id' in item && item.id) {
