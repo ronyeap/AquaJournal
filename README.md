@@ -1,20 +1,41 @@
-<div align="center">
-<img width="1200" height="475" alt="GHBanner" src="https://github.com/user-attachments/assets/0aa67016-6eaf-458a-adb2-6e31a0763ed6" />
-</div>
+# AquaLog - Aquarium Care Tracker
 
-# Run and deploy your AI Studio app
+A comprehensive web application for aquarium enthusiasts to track and manage fish tank maintenance activities. Monitor tank conditions, schedule care tasks, and maintain detailed logs to ensure a healthy aquatic environment.
 
-This contains everything you need to run your app locally.
+## Features
 
-View your app in AI Studio: https://ai.studio/apps/drive/1N-t-w-pMEkFlnBfjC83_SkOrcyBIFFDL
+- **Aquarium Management**: Add and manage multiple aquariums with detailed information
+- **Maintenance Logging**: Track water changes, fertilization, and other maintenance activities
+- **Photo Gallery**: Upload and manage growth photos for each aquarium
+- **Plant Tracking**: Log and monitor aquatic plants
+- **Task Management**: Set up recurring maintenance tasks and reminders
+- **Equipment Logging**: Track lighting, CO2, and other equipment details
 
 ## Run Locally
 
-**Prerequisites:**  Node.js
-
+**Prerequisites:** Node.js
 
 1. Install dependencies:
-   `npm install`
-2. Set the `GEMINI_API_KEY` in [.env.local](.env.local) to your Gemini API key
-3. Run the app:
-   `npm run dev`
+   ```bash
+   npm install
+   ```
+
+2. Run the app:
+   ```bash
+   npm run dev
+   ```
+
+3. Open your browser and navigate to `http://localhost:3000`
+
+## Build for Production
+
+```bash
+npm run build
+```
+
+## Technology Stack
+
+- **Frontend**: React + TypeScript
+- **Styling**: Tailwind CSS
+- **Build Tool**: Vite
+- **State Management**: React Hooks + Local Storage

@@ -129,14 +129,6 @@ export const AquariumDetail: React.FC<AquariumDetailProps> = ({ aquarium, data, 
                   </div>
                 </div>
             </div>
-
-            <UpcomingTasks 
-              tasks={data.tasks} 
-              aquariumId={aquarium.id} 
-              onCompleteTask={data.completeTask} 
-              openModal={openModal} 
-              deleteTask={deleteTask}
-            />
             
             <Section title="Photo Gallery" icon={<CameraIcon className="w-6 h-6 text-purple-500" />}>
                 {filteredPhotos.length > 0 ? (
@@ -187,6 +179,14 @@ export const AquariumDetail: React.FC<AquariumDetailProps> = ({ aquarium, data, 
                     </ul>
                 ) : <p className="text-slate-500 text-center py-4">No plants logged for this aquarium.</p>}
             </Section>
+
+            <UpcomingTasks 
+              tasks={data.tasks} 
+              aquariumId={aquarium.id} 
+              onCompleteTask={data.completeTask} 
+              openModal={openModal} 
+              deleteTask={deleteTask}
+            />
             
             <div className="grid md:grid-cols-2 gap-6">
                  <Section title="Water Change Log" icon={<WaterIcon className="w-6 h-6 text-blue-500" />}>
