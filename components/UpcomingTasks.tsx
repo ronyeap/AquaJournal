@@ -24,21 +24,35 @@ const getTaskStatus = (dueDate: Date): { text: string; color: string; days: numb
 
 export const UpcomingTasks: React.FC<UpcomingTasksProps> = ({ tasks, aquariumId, onCompleteTask, openModal, deleteTask }) => {
   const upcomingTasks = useMemo(() => {
-    return tasks
-      .filter(task => task.aquariumId === aquariumId)
-      .map(task => {
-        let dueDate;
-        if (task.isRepeatable && task.frequencyDays) {
-          const lastCompletedDate = new Date(task.lastCompleted);
-          dueDate = new Date(lastCompletedDate.setDate(lastCompletedDate.getDate() + task.frequencyDays));
-        } else {
-          // For one-off tasks, lastCompleted is the due date
-          dueDate = new Date(task.lastCompleted);
-        }
-        return { ...task, dueDate, status: getTaskStatus(new Date(dueDate)) };
-      })
-      .sort((a, b) => a.dueDate.getTime() - b.dueDate.getTime())
-      .slice(0, 5); // Show top 5 upcoming
+    const filtered = tasks.filter(task => task.aquariumId === aquariumId);
+    const processed = filtered.map(task => {
+      let dueDate;
+      if (task.isRepeatable && task.frequencyDays) {
+        const lastCompletedDate = new Date(task.lastCompleted);
+        dueDate = new Date(lastCompletedDate.setDate(lastCompletedDate.getDate() + task.frequencyDays));
+      } else {
+        // For one-off tasks, lastCompleted is the due date
+        dueDate = new Date(task.lastCompleted);
+      }
+      return { ...task, dueDate, status: getTaskStatus(new Date(dueDate)) };
+    });
+    const sorted = processed.sort((a, b) => a.dueDate.getTime() - b.dueDate.getTime());
+    const result = sorted.slice(0, 5); // Show top 5 upcoming
+    
+    console.log('Upcoming Tasks Debug:', {
+      total: tasks.length,
+      filtered: filtered.length,
+      aquariumId,
+      items: result.map((task, index) => ({
+        index,
+        id: task.id,
+        name: task.name,
+        hasValidId: !!task.id,
+        hasValidName: !!task.name
+      }))
+    });
+    
+    return result;
   }, [tasks, aquariumId]);
   
   const handleDelete = (task: Task) => {
@@ -62,8 +76,38 @@ export const UpcomingTasks: React.FC<UpcomingTasksProps> = ({ tasks, aquariumId,
                 <p className={`text-sm font-medium ${task.status.color}`}>{task.status.text}</p>
               </div>
               <div className="flex items-center space-x-2">
-                 <button onClick={() => openModal('EDIT_TASK', task)} className="p-2 text-slate-500 hover:text-blue-600 hover:bg-blue-100 rounded-full"><PencilIcon/></button>
-                 <button onClick={() => handleDelete(task)} className="p-2 text-slate-500 hover:text-red-600 hover:bg-red-100 rounded-full"><TrashIcon/></button>
+                 <button 
+                   onClick={() => {
+                     console.log('=== EDIT TASK CLICKED ===');
+                     console.log('Task data:', {
+                       id: task.id,
+                       name: task.name,
+                       aquariumId: task.aquariumId,
+                       isRepeatable: task.isRepeatable,
+                       frequencyDays: task.frequencyDays,
+                       lastCompleted: task.lastCompleted
+                     });
+                     console.log('Calling openModal with:', 'EDIT_TASK', task);
+                     openModal('EDIT_TASK', task);
+                   }} 
+                   className="p-2 text-slate-500 hover:text-blue-600 hover:bg-blue-100 rounded-full"
+                 >
+                   <PencilIcon/>
+                 </button>
+                 <button 
+                   onClick={() => {
+                     console.log('=== DELETE TASK CLICKED ===');
+                     console.log('Task data:', {
+                       id: task.id,
+                       name: task.name,
+                       aquariumId: task.aquariumId
+                     });
+                     handleDelete(task);
+                   }} 
+                   className="p-2 text-slate-500 hover:text-red-600 hover:bg-red-100 rounded-full"
+                 >
+                   <TrashIcon/>
+                 </button>
                  <button 
                     onClick={() => onCompleteTask(task.id, new Date().toISOString())}
                     className="px-4 py-1.5 text-sm font-semibold text-white bg-green-500 rounded-full hover:bg-green-600 transition-colors"
