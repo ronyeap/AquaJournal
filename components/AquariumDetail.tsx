@@ -53,12 +53,15 @@ const LogItem: React.FC<{onEdit: () => void; onDelete: () => void; children: Rea
 );
 
 const FabAction: React.FC<{label: string, icon: React.ReactNode, onClick: () => void}> = ({label, icon, onClick}) => (
-    <div className="flex items-center gap-4 w-full justify-end">
-        <span className="bg-white text-slate-700 font-semibold px-3 py-1.5 rounded-md shadow-sm">{label}</span>
-        <button onClick={onClick} className="w-12 h-12 flex items-center justify-center bg-white rounded-full shadow-lg text-blue-500 hover:bg-slate-50 transition-colors">
+    <button 
+        onClick={onClick} 
+        className="flex items-center gap-4 w-full justify-end p-2 rounded-lg hover:bg-slate-50 transition-colors group"
+    >
+        <span className="bg-white text-slate-700 font-semibold px-3 py-1.5 rounded-md shadow-sm group-hover:bg-slate-100 transition-colors">{label}</span>
+        <div className="w-12 h-12 flex items-center justify-center bg-white rounded-full shadow-lg text-blue-500 group-hover:bg-slate-50 transition-colors">
             {icon}
-        </button>
-    </div>
+        </div>
+    </button>
 );
 
 
