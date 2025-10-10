@@ -77,33 +77,13 @@ export const UpcomingTasks: React.FC<UpcomingTasksProps> = ({ tasks, aquariumId,
               </div>
               <div className="flex items-center space-x-2">
                  <button 
-                   onClick={() => {
-                     console.log('=== EDIT TASK CLICKED ===');
-                     console.log('Task data:', {
-                       id: task.id,
-                       name: task.name,
-                       aquariumId: task.aquariumId,
-                       isRepeatable: task.isRepeatable,
-                       frequencyDays: task.frequencyDays,
-                       lastCompleted: task.lastCompleted
-                     });
-                     console.log('Calling openModal with:', 'EDIT_TASK', task);
-                     openModal('EDIT_TASK', task);
-                   }} 
+                   onClick={() => openModal('EDIT_TASK', task)} 
                    className="p-2 text-slate-500 hover:text-blue-600 hover:bg-blue-100 rounded-full"
                  >
                    <PencilIcon/>
                  </button>
                  <button 
-                   onClick={() => {
-                     console.log('=== DELETE TASK CLICKED ===');
-                     console.log('Task data:', {
-                       id: task.id,
-                       name: task.name,
-                       aquariumId: task.aquariumId
-                     });
-                     handleDelete(task);
-                   }} 
+                   onClick={() => handleDelete(task)} 
                    className="p-2 text-slate-500 hover:text-red-600 hover:bg-red-100 rounded-full"
                  >
                    <TrashIcon/>

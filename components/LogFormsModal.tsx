@@ -28,48 +28,51 @@ const Modal: React.FC<{ title: string; onClose: () => void; children: React.Reac
 
 export const LogFormsModal: React.FC<LogFormsModalProps> = ({ modalState, aquariumId, onClose, dataActions, onAddAquarium }) => {
   const { type, itemToEdit } = modalState;
-  const [formData, setFormData] = useState<any>({});
-  const [file, setFile] = useState<File | null>(null);
-  const [isProcessing, setIsProcessing] = useState(false);
-  const [error, setError] = useState<string | null>(null);
-
-  useEffect(() => {
-    console.log('=== LOGFORMSMODAL USEEFFECT ===');
-    console.log('Modal type:', type);
-    console.log('itemToEdit:', itemToEdit);
-    console.log('itemToEdit type:', typeof itemToEdit);
-    if (itemToEdit) {
-      console.log('itemToEdit keys:', Object.keys(itemToEdit));
-      console.log('itemToEdit ID:', itemToEdit.id);
-      
+  // Helper function to derive initial form data
+  const deriveFormData = (modalType: ModalType, item: any) => {
+    const today = new Date().toISOString().split('T')[0];
+    
+    if (item) {
+      // If editing an item, process its data
       const dateFields = ['date', 'setupDate', 'plantingDate', 'lastCompleted'];
-      const editedData = { ...itemToEdit };
-      console.log('Original editedData:', editedData);
+      const editedData = { ...item };
       
       dateFields.forEach(field => {
         if (editedData[field]) {
-          console.log(`Converting date field ${field}:`, editedData[field], 'to:', new Date(editedData[field]).toISOString().split('T')[0]);
           editedData[field] = new Date(editedData[field]).toISOString().split('T')[0];
         }
       });
       
-      console.log('Final editedData:', editedData);
-      setFormData(editedData);
+      return editedData;
     } else {
-      console.log('No itemToEdit, setting default data');
       // Set defaults for new entries
       const defaultData: any = { date: today, unit: 'gallons-us' };
-      if (type === 'ADD_AQUARIUM') {
+      if (modalType === 'ADD_AQUARIUM') {
           defaultData.lighting = {durationStart: '10:00', durationEnd: '20:00'};
       }
-      if (type === 'ADD_TASK') {
+      if (modalType === 'ADD_TASK') {
           defaultData.isRepeatable = true;
           defaultData.frequencyDays = 7;
       }
-      console.log('Default data:', defaultData);
-      setFormData(defaultData);
+      return defaultData;
     }
-  }, [itemToEdit, type]);
+  };
+
+  // Initialize formData with correct values immediately
+  const [formData, setFormData] = useState<any>(() => deriveFormData(type, itemToEdit));
+  const [file, setFile] = useState<File | null>(null);
+  const [isProcessing, setIsProcessing] = useState(false);
+  const [error, setError] = useState<string | null>(null);
+
+  // Update formData when props change (for modal reuse)
+  useEffect(() => {
+    const newFormData = deriveFormData(type, itemToEdit);
+    
+    // Only update if the data has actually changed
+    if (JSON.stringify(formData) !== JSON.stringify(newFormData)) {
+      setFormData(newFormData);
+    }
+  }, [type, itemToEdit]);
 
   const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement>) => {
     const { name, value, type: inputType, checked } = e.target as HTMLInputElement;
@@ -254,11 +257,6 @@ export const LogFormsModal: React.FC<LogFormsModalProps> = ({ modalState, aquari
   };
   
   const renderFormFields = () => {
-    console.log('=== RENDERFORMFIELDS CALLED ===');
-    console.log('Type:', type);
-    console.log('formData:', formData);
-    console.log('itemToEdit:', itemToEdit);
-    
     switch (type) {
         case 'ADD_AQUARIUM':
         case 'EDIT_AQUARIUM': return (
@@ -282,11 +280,6 @@ export const LogFormsModal: React.FC<LogFormsModalProps> = ({ modalState, aquari
         );
         case 'LOG_WATER_CHANGE': 
         case 'EDIT_WATER_CHANGE': 
-          console.log('Rendering WATER CHANGE form fields');
-          console.log('formData.date:', formData.date);
-          console.log('formData.volume:', formData.volume);
-          console.log('formData.unit:', formData.unit);
-          console.log('formData.notes:', formData.notes);
           return (
             <>
                 <InputField name="date" label="Date" type="date" value={formData.date} onChange={handleChange} required />
@@ -301,11 +294,6 @@ export const LogFormsModal: React.FC<LogFormsModalProps> = ({ modalState, aquari
         );
         case 'LOG_FERTILIZER': 
         case 'EDIT_FERTILIZER': 
-          console.log('Rendering FERTILIZER form fields');
-          console.log('formData.date:', formData.date);
-          console.log('formData.fertilizer:', formData.fertilizer);
-          console.log('formData.dosageMl:', formData.dosageMl);
-          console.log('formData.notes:', formData.notes);
           return (
              <>
                 <InputField name="date" label="Date" type="date" value={formData.date} onChange={handleChange} required />

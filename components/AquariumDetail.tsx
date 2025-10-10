@@ -3,7 +3,6 @@ import { Aquarium, ModalType, Plant, Unit, GrowthPhoto, WaterChangeLog, Fertiliz
 import { UseAquariumDataReturnType } from '../hooks/useAquariumData';
 import { PlusIcon, CameraIcon, LeafIcon, WaterIcon, PencilIcon, TrashIcon, StarIcon, CalendarIcon } from './icons';
 import { UpcomingTasks } from './UpcomingTasks';
-import { ButtonTestComponent } from './ButtonTestComponent';
 
 
 interface AquariumDetailProps {
@@ -74,46 +73,14 @@ export const AquariumDetail: React.FC<AquariumDetailProps> = ({ aquarium, data, 
     const [expandedFertilizations, setExpandedFertilizations] = useState(false);
 
     const filteredWaterChanges = useMemo(() => {
-        const filtered = waterChanges
+        return waterChanges
             .filter(wc => wc.aquariumId === aquarium.id)
             .sort((a, b) => new Date(b.date).getTime() - new Date(a.date).getTime());
-        
-        console.log('Water Changes Debug:', {
-            total: waterChanges.length,
-            filtered: filtered.length,
-            aquariumId: aquarium.id,
-            items: filtered.map((wc, index) => ({
-                index,
-                id: wc.id,
-                date: wc.date,
-                volume: wc.volume,
-                hasValidId: !!wc.id,
-                hasValidDate: !!wc.date
-            }))
-        });
-        
-        return filtered;
     }, [waterChanges, aquarium.id]);
     const filteredFertilizations = useMemo(() => {
-        const filtered = fertilizations
+        return fertilizations
             .filter(f => f.aquariumId === aquarium.id)
             .sort((a, b) => new Date(b.date).getTime() - new Date(a.date).getTime());
-        
-        console.log('Fertilizations Debug:', {
-            total: fertilizations.length,
-            filtered: filtered.length,
-            aquariumId: aquarium.id,
-            items: filtered.map((f, index) => ({
-                index,
-                id: f.id,
-                date: f.date,
-                fertilizer: f.fertilizer,
-                hasValidId: !!f.id,
-                hasValidDate: !!f.date
-            }))
-        });
-        
-        return filtered;
     }, [fertilizations, aquarium.id]);
     const filteredPlants = useMemo(() => plants.filter(p => p.aquariumId === aquarium.id), [plants, aquarium.id]);
     const filteredPhotos = useMemo(() => photos.filter(p => p.aquariumId === aquarium.id), [photos, aquarium.id]);
@@ -235,29 +202,6 @@ export const AquariumDetail: React.FC<AquariumDetailProps> = ({ aquarium, data, 
               deleteTask={deleteTask}
             />
             
-            {/* DEBUG: Test Component */}
-            <ButtonTestComponent 
-              items={filteredWaterChanges.slice(0, 3).map((wc, index) => ({
-                id: wc.id,
-                name: `${wc.volume} ${unitLabels[wc.unit]} - ${new Date(wc.date).toLocaleDateString()}`,
-                index
-              }))}
-              onEdit={(item) => {
-                console.log('Test Edit called with:', item);
-                const wc = filteredWaterChanges.find(w => w.id === item.id);
-                if (wc) {
-                  openModal('EDIT_WATER_CHANGE', wc);
-                }
-              }}
-              onDelete={(item) => {
-                console.log('Test Delete called with:', item);
-                const wc = filteredWaterChanges.find(w => w.id === item.id);
-                if (wc) {
-                  handleDeleteWaterChange(wc);
-                }
-              }}
-            />
-            
             <div className="grid md:grid-cols-2 gap-6">
                  <Section title="Water Change Log" icon={<WaterIcon className="w-6 h-6 text-blue-500" />}>
                      {filteredWaterChanges.length > 0 ? (
@@ -266,33 +210,8 @@ export const AquariumDetail: React.FC<AquariumDetailProps> = ({ aquarium, data, 
                                 {(expandedWaterChanges ? filteredWaterChanges : filteredWaterChanges.slice(0, 3)).map(wc => (
                                     <LogItem 
                                         key={wc.id} 
-                                        onEdit={() => {
-                                            console.log('=== EDIT WATER CHANGE CLICKED ===');
-                                            console.log('Item data:', {
-                                                id: wc.id,
-                                                date: wc.date,
-                                                volume: wc.volume,
-                                                unit: wc.unit,
-                                                notes: wc.notes,
-                                                aquariumId: wc.aquariumId
-                                            });
-                                            console.log('Item type:', typeof wc);
-                                            console.log('Item keys:', Object.keys(wc));
-                                            console.log('Calling openModal with:', 'EDIT_WATER_CHANGE', wc);
-                                            openModal('EDIT_WATER_CHANGE', wc);
-                                        }} 
-                                        onDelete={() => {
-                                            console.log('=== DELETE WATER CHANGE CLICKED ===');
-                                            console.log('Item data:', {
-                                                id: wc.id,
-                                                date: wc.date,
-                                                volume: wc.volume,
-                                                unit: wc.unit,
-                                                notes: wc.notes,
-                                                aquariumId: wc.aquariumId
-                                            });
-                                            handleDeleteWaterChange(wc);
-                                        }}>
+                                        onEdit={() => openModal('EDIT_WATER_CHANGE', wc)} 
+                                        onDelete={() => handleDeleteWaterChange(wc)}>
                                         <p className="font-semibold">{new Date(wc.date).toLocaleDateString()}: <span className="font-normal">{wc.volume} {unitLabels[wc.unit]}</span></p>
                                         {wc.notes && <p className="text-sm text-slate-600 mt-1">{wc.notes}</p>}
                                     </LogItem>
@@ -300,10 +219,7 @@ export const AquariumDetail: React.FC<AquariumDetailProps> = ({ aquarium, data, 
                             </ul>
                             {filteredWaterChanges.length > 3 && (
                                 <button 
-                                    onClick={() => {
-                                        console.log('Show more water changes clicked, current state:', expandedWaterChanges);
-                                        setExpandedWaterChanges(!expandedWaterChanges);
-                                    }}
+                                    onClick={() => setExpandedWaterChanges(!expandedWaterChanges)}
                                     className="w-full mt-4 py-4 px-6 text-blue-600 hover:text-blue-700 hover:bg-blue-50 rounded-lg transition-colors font-medium text-lg min-h-[48px] flex items-center justify-center"
                                 >
                                     {expandedWaterChanges ? 'Show Less' : `Show ${filteredWaterChanges.length - 3} More`}
@@ -319,33 +235,8 @@ export const AquariumDetail: React.FC<AquariumDetailProps> = ({ aquarium, data, 
                                 {(expandedFertilizations ? filteredFertilizations : filteredFertilizations.slice(0, 3)).map(f => (
                                     <LogItem 
                                         key={f.id} 
-                                        onEdit={() => {
-                                            console.log('=== EDIT FERTILIZATION CLICKED ===');
-                                            console.log('Item data:', {
-                                                id: f.id,
-                                                date: f.date,
-                                                fertilizer: f.fertilizer,
-                                                dosageMl: f.dosageMl,
-                                                notes: f.notes,
-                                                aquariumId: f.aquariumId
-                                            });
-                                            console.log('Item type:', typeof f);
-                                            console.log('Item keys:', Object.keys(f));
-                                            console.log('Calling openModal with:', 'EDIT_FERTILIZER', f);
-                                            openModal('EDIT_FERTILIZER', f);
-                                        }} 
-                                        onDelete={() => {
-                                            console.log('=== DELETE FERTILIZATION CLICKED ===');
-                                            console.log('Item data:', {
-                                                id: f.id,
-                                                date: f.date,
-                                                fertilizer: f.fertilizer,
-                                                dosageMl: f.dosageMl,
-                                                notes: f.notes,
-                                                aquariumId: f.aquariumId
-                                            });
-                                            handleDeleteFertilization(f);
-                                        }}>
+                                        onEdit={() => openModal('EDIT_FERTILIZER', f)} 
+                                        onDelete={() => handleDeleteFertilization(f)}>
                                         <p className="font-semibold">{new Date(f.date).toLocaleDateString()}: <span className="font-normal">{f.fertilizer} - {f.dosageMl}ml</span></p>
                                         {f.notes && <p className="text-sm text-slate-600 mt-1">{f.notes}</p>}
                                     </LogItem>
@@ -353,10 +244,7 @@ export const AquariumDetail: React.FC<AquariumDetailProps> = ({ aquarium, data, 
                             </ul>
                             {filteredFertilizations.length > 3 && (
                                 <button 
-                                    onClick={() => {
-                                        console.log('Show more fertilizations clicked, current state:', expandedFertilizations);
-                                        setExpandedFertilizations(!expandedFertilizations);
-                                    }}
+                                    onClick={() => setExpandedFertilizations(!expandedFertilizations)}
                                     className="w-full mt-4 py-4 px-6 text-green-600 hover:text-green-700 hover:bg-green-50 rounded-lg transition-colors font-medium text-lg min-h-[48px] flex items-center justify-center"
                                 >
                                     {expandedFertilizations ? 'Show Less' : `Show ${filteredFertilizations.length - 3} More`}

@@ -45,17 +45,7 @@ const App: React.FC = () => {
       <AquariumDetail 
         aquarium={activeAquarium} 
         data={data} 
-        openModal={(type, itemToEdit) => {
-          console.log('=== APP OPENMODAL CALLED ===');
-          console.log('Modal type:', type);
-          console.log('Item to edit:', itemToEdit);
-          console.log('Item type:', typeof itemToEdit);
-          if (itemToEdit) {
-            console.log('Item keys:', Object.keys(itemToEdit));
-            console.log('Item ID:', itemToEdit.id);
-          }
-          setModal({ type, itemToEdit });
-        }} 
+        openModal={(type, itemToEdit) => setModal({ type, itemToEdit })} 
         onDeleteAquarium={handleDeleteAquarium}
       />
     );
